@@ -1,5 +1,5 @@
-menuconfig GNAT
-    bool "GNAT"
+menuconfig ADA_GNAT_RTS
+    bool "ADA_GNAT_RTS"
     help
-        GNAT ADA library
+        GNAT Ada Run Time Systems
 

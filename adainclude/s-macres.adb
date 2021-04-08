@@ -29,12 +29,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces;
+--  with Interfaces;
 
 package body System.Machine_Reset is
    procedure Os_Exit (Status : Integer);
    pragma No_Return (Os_Exit);
-   pragma Export (Ada, Os_Exit, "_exit");
+   pragma Import (C, Os_Exit, "_exit");
    --  Shutdown or restart the board
 
    procedure Os_Abort;
@@ -55,22 +55,22 @@ package body System.Machine_Reset is
    -- Os_Exit --
    -------------
 
-   procedure Os_Exit (Status : Integer) is
-      pragma Unreferenced (Status);
-      --  The parameter is just for ISO-C compatibility
+   --  procedure Os_Exit (Status : Integer) is
+   --    pragma Unreferenced (Status);
+   --    --  The parameter is just for ISO-C compatibility
 
-      AIRCR : Interfaces.Unsigned_32;
-      for AIRCR'Address use 16#E000_ED0C#;
-      pragma Import (Ada, AIRCR);
-      pragma Volatile (AIRCR);
+   --    AIRCR : Interfaces.Unsigned_32;
+   --    for AIRCR'Address use 16#E000_ED0C#;
+   --    pragma Import (Ada, AIRCR);
+   --    pragma Volatile (AIRCR);
 
-   begin
-      AIRCR := 16#05FA_0004#;
+   --  begin
+   --    AIRCR := 16#05FA_0004#;
 
-      loop
-         null;
-      end loop;
-   end Os_Exit;
+   --    loop
+   --       null;
+   --    end loop;
+   --  end Os_Exit;
 
    ----------
    -- Stop --

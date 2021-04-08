@@ -40,6 +40,9 @@ package Ada.Text_IO is
    procedure Put (Item : Character);
    --  Output character to the console
 
+   procedure Put (Number : Integer);
+   --  Output character to the console
+
    procedure Put (Item : String);
    --  Output string to the console
 

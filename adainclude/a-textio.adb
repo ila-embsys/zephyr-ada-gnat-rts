@@ -29,10 +29,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Version for semihosting, a mechanism that enables I/O between target and
---  host computer using the debugger.
-
-with System.Semihosting;
+with Interfaces.C.Strings; use Interfaces.C.Strings;
+with Zephyr_Helpers;
 
 package body Ada.Text_IO is
 
@@ -42,7 +40,7 @@ package body Ada.Text_IO is
 
    procedure Get (C : out Character) is
    begin
-      System.Semihosting.Get (C);
+      null;
    end Get;
 
    --------------
@@ -51,7 +49,7 @@ package body Ada.Text_IO is
 
    procedure New_Line is
    begin
-      System.Semihosting.Put (ASCII.CR & ASCII.LF);
+      Put (ASCII.CR & ASCII.LF);
    end New_Line;
 
    ---------
@@ -60,12 +58,19 @@ package body Ada.Text_IO is
 
    procedure Put (Item : Character) is
    begin
-      System.Semihosting.Put (Item);
+      null;
+   end Put;
+
+   procedure Put (Number : Integer) is
+   begin
+      null;
    end Put;
 
    procedure Put (Item : String) is
+      c_item : constant Interfaces.C.Strings.chars_ptr :=
+         Interfaces.C.Strings.New_String (Item);
    begin
-      System.Semihosting.Put (Item);
+      Zephyr_Helpers.printk (c_item);
    end Put;
 
    --------------
@@ -74,6 +79,6 @@ package body Ada.Text_IO is
 
    procedure Put_Line (Item : String) is
    begin
-      System.Semihosting.Put (Item & ASCII.CR & ASCII.LF);
+      Put (Item & ASCII.CR & ASCII.LF);
    end Put_Line;
 end Ada.Text_IO;

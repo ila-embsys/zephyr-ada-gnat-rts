@@ -34,7 +34,7 @@
 with Ada.Unchecked_Conversion;
 with System.Machine_Reset;
 
-with GNAT.IO; use GNAT.IO;
+with Ada.Text_IO; use Ada.Text_IO;
 --  We rely on GNAT packages for the output. Usually, Ada predefined units
 --  cannot depends on GNAT units, as the user could use the GNAT hierarchy.
 --  However, this implementation of Last_Chance_Handler is a default one, that

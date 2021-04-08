@@ -2,11 +2,11 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
--- S Y S T E M . A D D R E S S _ T O _ A C C E S S _ C O N V E R S I O N S  --
+--                 I N T E R F A C E S . C . S T R I N G S                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1992-2020, Free Software Foundation, Inc.         --
+--       Copyright (C) 1993-2011, 2016, Free Software Foundation, Inc.      --
 --                                                                          --
 -- This specification is derived from the Ada Reference Manual for use with --
 -- GNAT. The copyright notice above, and the license provisions that follow --
@@ -33,31 +33,74 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-generic
-   type Object (<>) is limited private;
+--  Modified from GCC 4.9.1 for Cortex GNAT RTS.
 
-package System.Address_To_Access_Conversions is
+package Interfaces.C.Strings is
    pragma Preelaborate;
 
-   pragma Compile_Time_Warning
-     (Object'Unconstrained_Array,
-      "Object is unconstrained array type" & ASCII.LF &
-      "To_Pointer results may not have bounds");
+   type char_array_access is access all char_array;
+   for char_array_access'Size use Standard'Address_Size;
 
-   type Object_Pointer is access all Object;
-   for Object_Pointer'Size use Standard'Address_Size;
+   pragma No_Strict_Aliasing (char_array_access);
+   --  Since this type is used for external interfacing, with the pointer
+   --  coming from who knows where, it seems a good idea to turn off any
+   --  strict aliasing assumptions for this type.
 
-   pragma No_Strict_Aliasing (Object_Pointer);
-   --  Strictly speaking, this routine should not be used to generate pointers
-   --  to other than proper values of the proper type, but in practice, this
-   --  is done all the time. This pragma stops the compiler from doing some
-   --  optimizations that may cause unexpected results based on the assumption
-   --  of no strict aliasing.
+   type chars_ptr is private;
+   pragma Preelaborable_Initialization (chars_ptr);
 
-   function To_Pointer (Value : Address)        return Object_Pointer;
-   function To_Address (Value : Object_Pointer) return Address;
+   type chars_ptr_array is array (size_t range <>) of aliased chars_ptr;
 
-   pragma Import (Intrinsic, To_Pointer);
-   pragma Import (Intrinsic, To_Address);
+   Null_Ptr : constant chars_ptr;
 
-end System.Address_To_Access_Conversions;
+   function To_Chars_Ptr
+     (Item      : char_array_access;
+      Nul_Check : Boolean := False) return chars_ptr;
+
+   function New_Char_Array (Chars : char_array) return chars_ptr;
+
+   function New_String (Str : String) return chars_ptr;
+
+   procedure Free (Item : in out chars_ptr);
+
+   Dereference_Error : exception;
+
+   function Value (Item : chars_ptr) return char_array;
+
+   function Value
+     (Item   : chars_ptr;
+      Length : size_t) return char_array;
+
+   function Value (Item : chars_ptr) return String;
+
+   function Value
+     (Item   : chars_ptr;
+      Length : size_t) return String;
+
+   function Strlen (Item : chars_ptr) return size_t;
+
+   procedure Update
+     (Item   : chars_ptr;
+      Offset : size_t;
+      Chars  : char_array;
+      Check  : Boolean := True);
+
+   procedure Update
+     (Item   : chars_ptr;
+      Offset : size_t;
+      Str    : String;
+      Check  : Boolean := True);
+
+   Update_Error : exception;
+
+private
+   type chars_ptr is access all Character;
+   for chars_ptr'Size use Standard'Address_Size;
+
+   pragma No_Strict_Aliasing (chars_ptr);
+   --  Since this type is used for external interfacing, with the pointer
+   --  coming from who knows where, it seems a good idea to turn off any
+   --  strict aliasing assumptions for this type.
+
+   Null_Ptr : constant chars_ptr := null;
+end Interfaces.C.Strings;
