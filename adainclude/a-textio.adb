@@ -67,10 +67,11 @@ package body Ada.Text_IO is
    end Put;
 
    procedure Put (Item : String) is
-      c_item : constant Interfaces.C.Strings.chars_ptr :=
+      c_item : Interfaces.C.Strings.chars_ptr :=
          Interfaces.C.Strings.New_String (Item);
    begin
       Zephyr_Helpers.printk (c_item);
+      Interfaces.C.Strings.Free (c_item);
    end Put;
 
    --------------
