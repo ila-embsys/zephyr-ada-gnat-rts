@@ -24,6 +24,7 @@ if(CONFIG_ADA_GNAT_RTS)
   zephyr_library_sources(
       # Helpers to call Zephyr from GNAT
       ${CMAKE_CURRENT_LIST_DIR}/zephyr_helpers/printk.c
+      ${CMAKE_CURRENT_LIST_DIR}/zephyr_helpers/logging.c
 
       # Ada
       ${CMAKE_CURRENT_LIST_DIR}/adainclude/a-elchha.adb

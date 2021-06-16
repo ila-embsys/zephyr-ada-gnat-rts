@@ -5,4 +5,9 @@ package Zephyr_Helpers is
    with Import => True,
       Convention => C,
       External_Name => "zhelper_printk";
+
+   procedure log_panic
+   with Import => True,
+      Convention => C,
+      External_Name => "zhelper_log_panic";
 end Zephyr_Helpers;
