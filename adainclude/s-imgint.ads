@@ -2,11 +2,11 @@
 --                                                                          --
 --                         GNAT RUN-TIME COMPONENTS                         --
 --                                                                          --
---    A D A . E X C E P T I O N S . L A S T _ C H A N C E _ H A N D L E R   --
+--                       S Y S T E M . I M G _ I N T                        --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 2012-2020, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2009, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,59 +29,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Default last chance handler for no propagation runtimes
+--  This package contains the routines for supporting the Image attribute for
+--  signed integer types up to Size Integer'Size, and also for conversion
+--  operations required in Text_IO.Integer_IO for such types.
 
-with Ada.Unchecked_Conversion;
-with System.Machine_Reset;
-with Zephyr_Helpers;
+package System.Img_Int is
+   pragma Pure;
 
-with Ada.Text_IO; use Ada.Text_IO;
---  We rely on GNAT packages for the output. Usually, Ada predefined units
---  cannot depends on GNAT units, as the user could use the GNAT hierarchy.
---  However, this implementation of Last_Chance_Handler is a default one, that
---  could be redefined by the user.
+   procedure Image_Integer
+     (V : Integer;
+      S : in out String;
+      P : out Natural);
+   --  Computes Integer'Image (V) and stores the result in S (1 .. P)
+   --  setting the resulting value of P. The caller guarantees that S
+   --  is long enough to hold the result, and that S'First is 1.
 
-procedure Ada.Exceptions.Last_Chance_Handler
-  (Msg : System.Address; Line : Integer)
-is
-   procedure Put (Str : System.Address);
-   --  Put for a nul-terminated string (a C string)
+   procedure Set_Image_Integer
+     (V : Integer;
+      S : in out String;
+      P : in out Natural);
+   --  Stores the image of V in S starting at S (P + 1), P is updated to point
+   --  to the last character stored. The value stored is identical to the value
+   --  of Integer'Image (V) except that no leading space is stored when V is
+   --  non-negative. The caller guarantees that S is long enough to hold the
+   --  result. S need not have a lower bound of 1.
 
-   ---------
-   -- Put --
-   ---------
-
-   procedure Put (Str : System.Address) is
-      type C_String_Ptr is access String (1 .. Positive'Last);
-      function To_C_String_Ptr is new Ada.Unchecked_Conversion
-        (System.Address, C_String_Ptr);
-
-      Msg_Str : constant C_String_Ptr := To_C_String_Ptr (Str);
-
-   begin
-      for J in Msg_Str'Range loop
-         exit when Msg_Str (J) = Character'Val (0);
-         Put (Msg_Str (J));
-      end loop;
-   end Put;
-
-begin
-   Zephyr_Helpers.log_panic;
-   Put_Line ("In last chance handler");
-
-   if Line /= 0 then
-      Put ("Predefined exception raised at ");
-      Put (Msg);
-      Put (':');
-      Put (Line);
-   else
-      Put ("User defined exception, message: ");
-      Put (Msg);
-   end if;
-
-   New_Line;
-
-   --  Stop the program
-
-   System.Machine_Reset.Stop;
-end Ada.Exceptions.Last_Chance_Handler;
+end System.Img_Int;

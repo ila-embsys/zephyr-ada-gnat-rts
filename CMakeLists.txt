@@ -38,6 +38,7 @@ if(CONFIG_ADA_GNAT_RTS)
       ${CMAKE_CURRENT_LIST_DIR}/adainclude/s-stoele.adb
       ${CMAKE_CURRENT_LIST_DIR}/adainclude/s-imageu.adb
       ${CMAKE_CURRENT_LIST_DIR}/adainclude/s-imguns.adb
+      ${CMAKE_CURRENT_LIST_DIR}/adainclude/s-imgint.adb
 
       # Interfaces
       ${CMAKE_CURRENT_LIST_DIR}/adainclude/i-cstrin.adb

@@ -2,11 +2,11 @@
 --                                                                          --
 --                         GNAT RUN-TIME COMPONENTS                         --
 --                                                                          --
---    A D A . E X C E P T I O N S . L A S T _ C H A N C E _ H A N D L E R   --
+--                       S Y S T E M . I M G _ I N T                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 2012-2020, Free Software Foundation, Inc.         --
+--       Copyright (C) 1992-2015, 2017, Free Software Foundation, Inc.      --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,59 +29,83 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Default last chance handler for no propagation runtimes
+--  Modified from GCC 7.1.0 to remove recursion for Cortex GNAT RTS.
 
-with Ada.Unchecked_Conversion;
-with System.Machine_Reset;
-with Zephyr_Helpers;
+package body System.Img_Int is
 
-with Ada.Text_IO; use Ada.Text_IO;
---  We rely on GNAT packages for the output. Usually, Ada predefined units
---  cannot depends on GNAT units, as the user could use the GNAT hierarchy.
---  However, this implementation of Last_Chance_Handler is a default one, that
---  could be redefined by the user.
+   procedure Set_Digits
+     (T : Integer;
+      S : in out String;
+      P : in out Natural);
+   --  Set digits of absolute value of T, which is zero or negative. We work
+   --  with the negative of the value so that the largest negative number is
+   --  not a special case.
 
-procedure Ada.Exceptions.Last_Chance_Handler
-  (Msg : System.Address; Line : Integer)
-is
-   procedure Put (Str : System.Address);
-   --  Put for a nul-terminated string (a C string)
+   -------------------
+   -- Image_Integer --
+   -------------------
 
-   ---------
-   -- Put --
-   ---------
-
-   procedure Put (Str : System.Address) is
-      type C_String_Ptr is access String (1 .. Positive'Last);
-      function To_C_String_Ptr is new Ada.Unchecked_Conversion
-        (System.Address, C_String_Ptr);
-
-      Msg_Str : constant C_String_Ptr := To_C_String_Ptr (Str);
+   procedure Image_Integer
+     (V : Integer;
+      S : in out String;
+      P : out Natural)
+   is
+      pragma Assert (S'First = 1);
 
    begin
-      for J in Msg_Str'Range loop
-         exit when Msg_Str (J) = Character'Val (0);
-         Put (Msg_Str (J));
+      if V >= 0 then
+         S (1) := ' ';
+         P := 1;
+      else
+         P := 0;
+      end if;
+
+      Set_Image_Integer (V, S, P);
+   end Image_Integer;
+
+   ----------------
+   -- Set_Digits --
+   ----------------
+
+   procedure Set_Digits
+     (T : Integer;
+      S : in out String;
+      P : in out Natural)
+   is
+      Local_T : Integer := T;
+      Local_P : Natural := P;
+      Reversed : String (S'Range);
+   begin
+      while Local_T <= -10 loop
+         Local_P := Local_P + 1;
+         Reversed (Local_P) := Character'Val (48 - (Local_T rem 10));
+         Local_T := Local_T / 10;
       end loop;
-   end Put;
+      Local_P := Local_P + 1;
+      Reversed (Local_P) := Character'Val (48 - Local_T);
+      for J in 0 .. (Local_P - P) loop
+         S (P + 1 + J) := Reversed (Local_P - J);
+      end loop;
+      P := Local_P;
+   end Set_Digits;
 
-begin
-   Zephyr_Helpers.log_panic;
-   Put_Line ("In last chance handler");
+   -----------------------
+   -- Set_Image_Integer --
+   -----------------------
 
-   if Line /= 0 then
-      Put ("Predefined exception raised at ");
-      Put (Msg);
-      Put (':');
-      Put (Line);
-   else
-      Put ("User defined exception, message: ");
-      Put (Msg);
-   end if;
+   procedure Set_Image_Integer
+     (V : Integer;
+      S : in out String;
+      P : in out Natural)
+   is
+   begin
+      if V >= 0 then
+         Set_Digits (-V, S, P);
+      else
+         P := P + 1;
+         S (P) := '-';
+         Set_Digits (V, S, P);
+      end if;
+   end Set_Image_Integer;
 
-   New_Line;
-
-   --  Stop the program
-
-   System.Machine_Reset.Stop;
-end Ada.Exceptions.Last_Chance_Handler;
+end System.Img_Int;
