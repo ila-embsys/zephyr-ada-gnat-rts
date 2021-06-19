@@ -33,7 +33,6 @@
 
 with Ada.Unchecked_Conversion;
 with System.Machine_Reset;
-with Zephyr_Helpers;
 
 with Ada.Text_IO; use Ada.Text_IO;
 --  We rely on GNAT packages for the output. Usually, Ada predefined units
@@ -66,7 +65,6 @@ is
    end Put;
 
 begin
-   Zephyr_Helpers.log_panic;
    Put_Line ("In last chance handler");
 
    if Line /= 0 then
