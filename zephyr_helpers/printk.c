@@ -1,5 +1,4 @@
-#include <logging/log.h>
-#include <stdio.h>
+#include <zephyr/sys/printk.h>
 
 void zhelper_printk(const char *buf)
 {
