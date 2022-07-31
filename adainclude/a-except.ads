@@ -38,6 +38,8 @@
 --  of Restriction No_Exception_Handlers or No_Exception_Propagation is set).
 
 with System;
+with System.Parameters;
+with System.Traceback_Entries;
 
 package Ada.Exceptions is
    pragma Preelaborate;
@@ -47,6 +49,11 @@ package Ada.Exceptions is
    pragma Preelaborable_Initialization (Exception_Id);
 
    Null_Id : constant Exception_Id;
+
+   type Exception_Occurrence is limited private;
+   pragma Preelaborable_Initialization (Exception_Occurrence);
+
+   type Exception_Occurrence_Access is access all Exception_Occurrence;
 
    procedure Raise_Exception (E : Exception_Id; Message : String := "");
    pragma No_Return (Raise_Exception);
@@ -58,6 +65,9 @@ package Ada.Exceptions is
    --  test in Raise_Exception).
 
 private
+   package SP renames System.Parameters;
+
+   Exception_Msg_Max_Length : constant := SP.Default_Exception_Msg_Max_Length;
 
    ------------------
    -- Exception_Id --
@@ -67,5 +77,56 @@ private
    Null_Id : constant Exception_Id := null;
 
    pragma Inline_Always (Raise_Exception);
+
+   --------------------------
+   -- Exception_Occurrence --
+   --------------------------
+
+   package TBE renames System.Traceback_Entries;
+
+   Max_Tracebacks : constant := 50;
+   --  Maximum number of trace backs stored in exception occurrence
+
+   subtype Tracebacks_Array is TBE.Tracebacks_Array (1 .. Max_Tracebacks);
+   --  Traceback array stored in exception occurrence
+
+   type Exception_Occurrence is record
+      Id : Exception_Id := Null_Id;
+      --  Exception_Identity for this exception occurrence
+
+      Machine_Occurrence : System.Address;
+      --  The underlying machine occurrence. For GCC, this corresponds to the
+      --  _Unwind_Exception structure address.
+
+      Msg_Length : Natural := 0;
+      --  Length of message (zero = no message)
+
+      Msg : String (1 .. Exception_Msg_Max_Length);
+      --  Characters of message
+
+      Exception_Raised : Boolean := False;
+      --  Set to true to indicate that this exception occurrence has actually
+      --  been raised. When an exception occurrence is first created, this is
+      --  set to False, then when it is processed by Raise_Current_Exception,
+      --  it is set to True. If Raise_Current_Exception is used to raise an
+      --  exception for which this flag is already True, then it knows that
+      --  it is dealing with the reraise case (which is useful to distinguish
+      --  for exception tracing purposes).
+
+      Pid : Natural := 0;
+      --  Partition_Id for partition raising exception
+
+      Num_Tracebacks : Natural range 0 .. Max_Tracebacks := 0;
+      --  Number of traceback entries stored
+
+      Tracebacks : Tracebacks_Array;
+      --  Stored tracebacks (in Tracebacks (1 .. Num_Tracebacks))
+   end record;
+
+   function "=" (Left, Right : Exception_Occurrence) return Boolean
+     is abstract;
+   --  Don't allow comparison on exception occurrences, we should not need
+   --  this, and it would not work right, because of the Msg and Tracebacks
+   --  fields which have unused entries not copied by Save_Occurrence.
 
 end Ada.Exceptions;

@@ -42,14 +42,14 @@ pragma Restrictions (No_Exception_Registration);
 --  it is only required by exception stream attributes which are not supported
 --  in this run time.
 
-pragma Restrictions (No_Implicit_Dynamic_Code);
+--  pragma Restrictions (No_Implicit_Dynamic_Code);
 --  Pointers to nested subprograms are not allowed in this run time, in order
 --  to prevent the compiler from building "trampolines".
 
 pragma Restrictions (No_Finalization);
 --  Controlled types are not supported in this run time
 
-pragma Restrictions (No_Tasking);
+--  pragma Restrictions (No_Tasking);
 --  Tasking is not supported in this run time
 
 pragma Discard_Names;
